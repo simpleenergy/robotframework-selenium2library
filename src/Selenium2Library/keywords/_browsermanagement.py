@@ -1,6 +1,4 @@
 import os
-import robot
-from robot.errors import DataError
 from selenium import webdriver
 from Selenium2Library import webdrivermonkeypatches
 from Selenium2Library.utils import BrowserCache
@@ -113,7 +111,7 @@ class _BrowserManagementKeywords(KeywordGroup):
         browser = self._make_browser(browser_name,desired_capabilities,ff_profile_dir,remote_url)
         try:
             browser.get(url)
-        except:  
+        except:
             self._cache.register(browser, alias)
             self._debug("Opened browser with session id %s but failed to open url '%s'"
                         % (browser.session_id, url))
@@ -154,7 +152,7 @@ class _BrowserManagementKeywords(KeywordGroup):
         | # use a proxy for PhantomJS |              |                                           |                         |
         | ${service args}=            | Create List  | --proxy=192.168.132.104:8888              |                         |
         | Create Webdriver            | PhantomJS    | service_args=${service args}              |                         |
-        
+
         Example for Robot Framework < 2.8:
         | # debug IE driver |                   |                  |       |          |                       |
         | ${kwargs}=        | Create Dictionary | log_level        | DEBUG | log_file | %{HOMEPATH}${/}ie.log |
@@ -273,7 +271,7 @@ class _BrowserManagementKeywords(KeywordGroup):
 
         If the window is found, all subsequent commands use that window, until
         this keyword is used again. If the window is not found, this keyword fails.
-        
+
         By default, when a locator value is provided,
         it is matched against the title of the window and the
         javascript name of the window. If multiple windows with
@@ -378,24 +376,6 @@ class _BrowserManagementKeywords(KeywordGroup):
 
     # Public, execution properties
 
-    def get_selenium_speed(self):
-        """Gets the delay in seconds that is waited after each Selenium command.
-
-        See `Set Selenium Speed` for an explanation."""
-        return robot.utils.secs_to_timestr(self._speed_in_secs)
-
-    def get_selenium_timeout(self):
-        """Gets the timeout in seconds that is used by various keywords.
-
-        See `Set Selenium Timeout` for an explanation."""
-        return robot.utils.secs_to_timestr(self._timeout_in_secs)
-
-    def get_selenium_implicit_wait(self):
-        """Gets the wait in seconds that is waited by Selenium.
-
-        See `Set Selenium Implicit Wait` for an explanation."""
-        return robot.utils.secs_to_timestr(self._implicit_wait_in_secs)
-
     def set_selenium_speed(self, seconds):
         """Sets the delay in seconds that is waited after each Selenium command.
 
@@ -407,7 +387,7 @@ class _BrowserManagementKeywords(KeywordGroup):
         | Set Selenium Speed | .5 seconds |
         """
         old_speed = self.get_selenium_speed()
-        self._speed_in_secs = robot.utils.timestr_to_secs(seconds)
+        self._speed_in_secs = seconds
         for browser in self._cache.browsers:
             browser.set_speed(self._speed_in_secs)
         return old_speed
@@ -430,7 +410,7 @@ class _BrowserManagementKeywords(KeywordGroup):
         | Set Selenium Timeout | ${orig timeout} |
         """
         old_timeout = self.get_selenium_timeout()
-        self._timeout_in_secs = robot.utils.timestr_to_secs(seconds)
+        self._timeout_in_secs = seconds
         for browser in self._cache.get_open_browsers():
             browser.set_script_timeout(self._timeout_in_secs)
         return old_timeout
@@ -439,26 +419,26 @@ class _BrowserManagementKeywords(KeywordGroup):
         """Sets Selenium 2's default implicit wait in seconds and
         sets the implicit wait for all open browsers.
 
-        From selenium 2 function 'Sets a sticky timeout to implicitly 
+        From selenium 2 function 'Sets a sticky timeout to implicitly
             wait for an element to be found, or a command to complete.
             This method only needs to be called one time per session.'
 
         Example:
         | ${orig wait} = | Set Selenium Implicit Wait | 10 seconds |
         | Perform AJAX call that is slow |
-        | Set Selenium Implicit Wait | ${orig wait} | 
+        | Set Selenium Implicit Wait | ${orig wait} |
         """
         old_wait = self.get_selenium_implicit_wait()
-        self._implicit_wait_in_secs = robot.utils.timestr_to_secs(seconds)
+        self._implicit_wait_in_secs = seconds
         for browser in self._cache.get_open_browsers():
             browser.implicitly_wait(self._implicit_wait_in_secs)
         return old_wait
-    
+
 
     def set_browser_implicit_wait(self, seconds):
         """Sets current browser's implicit wait in seconds.
 
-        From selenium 2 function 'Sets a sticky timeout to implicitly 
+        From selenium 2 function 'Sets a sticky timeout to implicitly
             wait for an element to be found, or a command to complete.
             This method only needs to be called one time per session.'
 
@@ -467,7 +447,7 @@ class _BrowserManagementKeywords(KeywordGroup):
 
         See also `Set Selenium Implicit Wait`.
         """
-        implicit_wait_in_secs = robot.utils.timestr_to_secs(seconds)
+        implicit_wait_in_secs = seconds
         self._current_browser().implicitly_wait(implicit_wait_in_secs)
 
     # Private
@@ -497,38 +477,38 @@ class _BrowserManagementKeywords(KeywordGroup):
 
 
     def _make_ff(self , remote , desired_capabilites , profile_dir):
-        
+
         if not profile_dir: profile_dir = FIREFOX_PROFILE_DIR
         profile = webdriver.FirefoxProfile(profile_dir)
         if remote:
-            browser = self._create_remote_web_driver(webdriver.DesiredCapabilities.FIREFOX  , 
+            browser = self._create_remote_web_driver(webdriver.DesiredCapabilities.FIREFOX  ,
                         remote , desired_capabilites , profile)
         else:
             browser = webdriver.Firefox(firefox_profile=profile)
         return browser
-    
+
     def _make_ie(self , remote , desired_capabilities , profile_dir):
-        return self._generic_make_browser(webdriver.Ie, 
+        return self._generic_make_browser(webdriver.Ie,
                 webdriver.DesiredCapabilities.INTERNETEXPLORER, remote, desired_capabilities)
 
     def _make_chrome(self , remote , desired_capabilities , profile_dir):
-        return self._generic_make_browser(webdriver.Chrome, 
+        return self._generic_make_browser(webdriver.Chrome,
                 webdriver.DesiredCapabilities.CHROME, remote, desired_capabilities)
 
     def _make_opera(self , remote , desired_capabilities , profile_dir):
-        return self._generic_make_browser(webdriver.Opera, 
+        return self._generic_make_browser(webdriver.Opera,
                 webdriver.DesiredCapabilities.OPERA, remote, desired_capabilities)
 
     def _make_phantomjs(self , remote , desired_capabilities , profile_dir):
-        return self._generic_make_browser(webdriver.PhantomJS, 
+        return self._generic_make_browser(webdriver.PhantomJS,
                 webdriver.DesiredCapabilities.PHANTOMJS, remote, desired_capabilities)
 
     def _make_htmlunit(self , remote , desired_capabilities , profile_dir):
-        return self._generic_make_browser(webdriver.Remote, 
+        return self._generic_make_browser(webdriver.Remote,
                 webdriver.DesiredCapabilities.HTMLUNIT, remote, desired_capabilities)
 
     def _make_htmlunitwithjs(self , remote , desired_capabilities , profile_dir):
-        return self._generic_make_browser(webdriver.Remote, 
+        return self._generic_make_browser(webdriver.Remote,
                 webdriver.DesiredCapabilities.HTMLUNITWITHJS, remote, desired_capabilities)
 
     def _make_android(self , remote , desired_capabilities , profile_dir):
@@ -544,9 +524,9 @@ class _BrowserManagementKeywords(KeywordGroup):
                 webdriver.DesiredCapabilities.SAFARI, remote, desired_capabilities)
 
     def _generic_make_browser(self, webdriver_type , desired_cap_type, remote_url, desired_caps):
-        '''most of the make browser functions just call this function which creates the 
+        '''most of the make browser functions just call this function which creates the
         appropriate web-driver'''
-        if not remote_url: 
+        if not remote_url:
             browser = webdriver_type()
         else:
             browser = self._create_remote_web_driver(desired_cap_type,remote_url , desired_caps)
@@ -580,4 +560,4 @@ class _BrowserManagementKeywords(KeywordGroup):
             desired_capabilities[key.strip()] = value.strip()
 
         return desired_capabilities
-    
+
